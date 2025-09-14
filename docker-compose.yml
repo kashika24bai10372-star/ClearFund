@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  client:
+    build: ./client
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
+      - REACT_APP_BLOCKCHAIN_URL=http://localhost:8545
+    depends_on:
+      - server
+
+  server:
+    build: ./server
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongo:27017/clearfund
+      - JWT_SECRET=your-jwt-secret
+      - BLOCKCHAIN_URL=http://ganache:8545
+    depends_on:
+      - mongo
+      - redis
+      - ganache
+
+  mongo:
+    image: mongo:5.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  ganache:
+    image: trufflesuite/ganache:latest
+    ports:
+      - "8545:8545"
+    command: >
+      --deterministic
+      --accounts 10
+      --hardfork istanbul
+      --gasLimit 12000000
+      --defaultBalanceEther 1000
+
+volumes:
+  mongo_data:
